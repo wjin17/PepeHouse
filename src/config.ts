@@ -1,14 +1,25 @@
 import os from "os";
+import {
+  RtpCodecCapability,
+  TransportListenIp,
+  WorkerLogTag,
+  WorkerLogLevel,
+} from "mediasoup/lib/types";
 
 export const config = {
   // mediasoup settings.
+  http: {
+    // NOTE: Don't change listenPort (client app assumes 4443).
+    listenPort: process.env.PROTOO_LISTEN_PORT || 5000,
+    // NOTE: Set your own valid certificate files.
+  },
   mediasoup: {
     // Number of mediasoup workers to launch.
-    numWorkers: 4, //Object.keys(os.cpus()).length,
+    numWorkers: 2, //Object.keys(os.cpus()).length,
     // mediasoup WorkerSettings.
     // See https://mediasoup.org/documentation/v3/mediasoup/api/#WorkerSettings
     workerSettings: {
-      logLevel: "warn",
+      logLevel: "warn" as WorkerLogLevel,
       logTags: [
         "info",
         "ice",
@@ -22,7 +33,7 @@ export const config = {
         "simulcast",
         "svc",
         "sctp",
-      ],
+      ] as WorkerLogTag[],
       rtcMinPort: process.env.MEDIASOUP_MIN_PORT || 40000,
       rtcMaxPort: process.env.MEDIASOUP_MAX_PORT || 49999,
     },
@@ -75,7 +86,7 @@ export const config = {
             "x-google-start-bitrate": 1000,
           },
         },
-      ],
+      ] as RtpCodecCapability[],
     },
     // mediasoup WebRtcTransport options for WebRTC endpoints (mediasoup-client,
     // libmediasoupclient).
@@ -92,16 +103,6 @@ export const config = {
       maxSctpMessageSize: 262144,
       // Additional options that are not part of WebRtcTransportOptions.
       maxIncomingBitrate: 1500000,
-    },
-    // mediasoup PlainTransport options for legacy RTP endpoints (FFmpeg,
-    // GStreamer).
-    // See https://mediasoup.org/documentation/v3/mediasoup/api/#PlainTransportOptions
-    plainTransportOptions: {
-      listenIp: {
-        ip: process.env.MEDIASOUP_LISTEN_IP || "1.2.3.4",
-        announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP,
-      },
-      maxSctpMessageSize: 262144,
     },
   },
 };
