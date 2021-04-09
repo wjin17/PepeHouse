@@ -1,0 +1,70 @@
+.host-view {
+  display: flex;
+  flex-flow: column;
+}
+
+.video {
+  //height: 100vh;
+
+  &.not-sharing {
+    display: flex;
+    flex-flow: column;
+    background-color: #e6e6e6;
+    height: 25vh;
+
+    h1 {
+      margin: auto;
+      text-align: center;
+    }
+  }
+}
+
+.side-bar {
+  padding: 1rem;
+
+  .side-bar-header {
+    height: 3rem;
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  .side-bar-header-image {
+    height: 2rem;
+    margin: auto 1rem;
+  }
+
+  .side-bar-header-title {
+    margin: auto 0 auto 2rem;
+    margin-left: 0;
+  }
+
+  button {
+    margin-bottom: 1rem;
+  }
+}
+
+/* .roomID {
+    &:hover {
+      cursor: pointer;
+    }
+  } */
+
+@media screen and (min-width: 420px) {
+  .host-view {
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  .video {
+    height: 100vh;
+    width: calc(100vw - 18rem);
+
+    &.not-sharing {
+      height: 100vh;
+    }
+  }
+
+  .side-bar {
+    width: 18rem;
+  }
+}

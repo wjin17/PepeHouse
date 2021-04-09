@@ -1,0 +1,41 @@
+.message-list {
+  overflow: scroll;
+  height: 37vh;
+}
+
+.chat-container {
+  background-color: #efefef;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.chat {
+  display: flex;
+  flex-flow: row wrap;
+  margin-top: 1rem;
+}
+
+strong.chat_display-name {
+  color: hsl(207, 61%, 53%);
+}
+
+strong.chat_notification {
+  color: hsl(271, 100%, 71%);
+}
+
+.message-input {
+  display: flex;
+  flex-flow: row nowrap;
+  margin-top: 0.5rem;
+}
+
+.chat-submit {
+  margin-left: 1rem;
+}
+
+@media screen and (min-width: 420px) {
+  .message-list {
+    height: 55vh;
+  }
+}

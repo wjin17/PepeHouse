@@ -1,0 +1,81 @@
+.host-view {
+  display: flex;
+  flex-flow: column;
+  height: 100vh;
+}
+
+.display-name:hover {
+  cursor: pointer;
+}
+
+.video {
+  //height: 100vh;
+
+  &.not-sharing {
+    display: flex;
+    flex-flow: column;
+    background-color: #e6e6e6;
+    height: 25vh;
+
+    h1 {
+      margin: auto;
+      text-align: center;
+    }
+  }
+}
+
+.side-bar {
+  padding: 1rem;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+
+  .side-bar-header {
+    height: 3rem;
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  .side-bar-header-image {
+    height: 2rem;
+    margin: auto 1rem;
+  }
+
+  .side-bar-header-title {
+    margin: auto 0 auto 2rem;
+    margin-left: 0;
+  }
+}
+
+.subtitle.roomID {
+  margin-bottom: 0;
+}
+
+.display-name-box {
+  max-width: 300px;
+  margin: auto;
+}
+
+.tool-tip {
+  color: #fff;
+}
+
+@media screen and (min-width: 420px) {
+  .host-view {
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  .video {
+    height: 100vh;
+    width: calc(100vw - 18rem);
+
+    &.not-sharing {
+      height: 100vh;
+    }
+  }
+
+  .side-bar {
+    width: 18rem;
+  }
+}

@@ -1,0 +1,46 @@
+.header {
+  height: 5rem;
+  display: flex;
+  margin: auto;
+}
+
+.header__link {
+  display: flex;
+  flex-flow: row nowrap;
+
+  img {
+    height: 3rem;
+    margin: auto 1rem;
+  }
+
+  h1 {
+    margin: auto 2rem;
+    margin-left: 0;
+  }
+}
+
+.home {
+  height: calc(100vh - 5rem);
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.room-input {
+  display: flex;
+  flex-flow: column;
+  button {
+    margin: 1rem auto;
+  }
+}
+
+.join-button {
+  margin: 1rem auto;
+}
+
+@media screen and (min-width: 420px) {
+  .header {
+    width: 80%;
+  }
+}
