@@ -142,7 +142,12 @@ export class Room extends EventEmitter {
         // If the Peer was joined, notify all Peers.
         if (peer.data.joined) {
           for (const otherPeer of this._getJoinedPeers({ excludePeer: peer })) {
-            otherPeer.notify("peerClosed", { peerId: peer.id }).catch(() => {});
+            otherPeer
+              .notify("peerClosed", {
+                peerId: peer.id,
+                displayName: peer.data.displayName,
+              })
+              .catch(() => {});
           }
         }
 

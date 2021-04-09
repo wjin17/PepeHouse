@@ -100,29 +100,11 @@ async function createExpressApp() {
    * API GET resource that returns the mediasoup Router RTP capabilities of
    * the room.
    */
-  app.use(
-    express.static(
-      path.join("/Users/williejin/Desktop/Projects/PepeHouse/client", "build")
-    )
-  );
+  app.use(express.static(path.join(__dirname, "client")));
 
   app.get("/*", (req: express.Request, res: express.Response) => {
-    res.sendFile(
-      path.join(
-        "/Users/williejin/Desktop/Projects/PepeHouse/client",
-        "build",
-        "index.html"
-      )
-    );
+    res.sendFile(path.join(__dirname, "client", "index.html"));
   });
-  /* app.get("*", (req: express.Request, res: express.Response) => {
-    //res.sendFile(path.join(__dirname + "/client/build/index.html"));
-    res.sendFile(
-      path.join(
-        "/Users/williejin/Desktop/Projects/PepeHouse/client/build/index.html"
-      )
-    );
-  }); */
 }
 
 async function runHttpsServer() {

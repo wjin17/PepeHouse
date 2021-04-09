@@ -8,7 +8,7 @@
     "server": "nodemon ./build/server.js",
     "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && cd client && npm run build && cd .. && cp ./client/build ./client"
+    "build": "tsc && cd client && npm run build && cd .. && cp -R ./client/build ./build/client"
   },
   "keywords": [],
   "author": "",
