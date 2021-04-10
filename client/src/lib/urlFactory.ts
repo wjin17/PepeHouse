@@ -1,6 +1,4 @@
-let protooPort = 5000;
-
-if (window.location.hostname === "test.mediasoup.org") protooPort = 4444;
+let protooPort = process.env.PORT;
 
 type ProtooURLParams = {
   roomId: string;
@@ -8,7 +6,7 @@ type ProtooURLParams = {
 };
 
 export function getProtooUrl({ roomId, peerId }: ProtooURLParams) {
-  const hostname = window.location.hostname;
+  const hostname = "http://localhost";
 
   return `ws://${hostname}:${protooPort}/?roomId=${roomId}&peerId=${peerId}`;
 }

@@ -10,7 +10,7 @@ export const config = {
   // mediasoup settings.
   http: {
     // NOTE: Don't change listenPort (client app assumes 4443).
-    listenPort: process.env.PROTOO_LISTEN_PORT || 5000,
+    listenPort: process.env.PORT || 5000,
     // NOTE: Set your own valid certificate files.
   },
   mediasoup: {
