@@ -76,9 +76,9 @@ const Host = () => {
 
   useEffect(() => {
     return () => {
-      console.log("close room pls");
+      if (roomClient) roomClient.close();
     };
-  });
+  }, []);
 
   /* async function getUserMedia() {
     try {
@@ -135,12 +135,27 @@ const Host = () => {
             <>
               <p
                 className="subtitle is-5 roomID"
-                /* onClick={() => {
-            navigator.clipboard.writeText(roomID);
-          }} */
+                onClick={() => {
+                  const roomURL = `https://${window.location.hostname}/room/${roomID}`;
+                  navigator.clipboard.writeText(roomURL);
+                }}
+                data-tip
+                data-for="room-link"
               >
                 Room ID: {roomID}
               </p>
+              <ReactTooltip
+                id="room-link"
+                type="error"
+                textColor="#fff"
+                backgroundColor="hsl(171, 100%, 41%)"
+                effect="solid"
+                place="left"
+              >
+                <p className="subtitle is-6 tool-tip">
+                  Click to get shareable url
+                </p>
+              </ReactTooltip>
               <p
                 className="subtitle is-5 display-name"
                 onClick={() => setModal(true)}
@@ -180,7 +195,7 @@ const Host = () => {
             </Link>
           ) : null}
         </div>
-        {roomClient ? (
+        {roomClient && !error ? (
           <div className="chat-container">
             <MessageList />
             <MessageInput roomClient={roomClient} />
