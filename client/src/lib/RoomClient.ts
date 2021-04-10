@@ -332,7 +332,7 @@ export default class RoomClient {
                 // needs byte offset wtf whatever that means
                 const number = view.getUint32(0);
 
-                if (number == Math.pow(2, 32) - 1) {
+                if (number === Math.pow(2, 32) - 1) {
                   console.log("dataChannelTest finished!");
 
                   this._nextDataChannelTestNumber = 0;
@@ -784,9 +784,9 @@ export default class RoomClient {
 
       this._shareProducer = await this._sendTransport!.produce({
         track,
-        //encodings,
+        encodings,
         codecOptions,
-        //codec,
+        codec,
         appData: {
           share: true,
         },
@@ -1207,6 +1207,7 @@ export default class RoomClient {
     console.log('sendChatMessage() [text:"%s]', text);
 
     if (!this._chatDataProducer) {
+      console.log("chat data producer", this._chatDataProducer);
       addMessage({
         content: "Unable to send message",
         type: "notification",
@@ -1318,7 +1319,6 @@ export default class RoomClient {
     try {
       clearMessages();
       this._mediasoupDevice = new mediasoupClient.Device();
-      console.log("mediasoup device created");
 
       const routerRtpCapabilities = await this._protoo!.request(
         "getRouterRtpCapabilities"

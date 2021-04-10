@@ -1,4 +1,5 @@
 const pepes = [
+  "PepeTheFrog",
   "PepePrime",
   "PepeHands",
   "PepeScoot",

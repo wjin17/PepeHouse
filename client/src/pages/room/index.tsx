@@ -77,6 +77,12 @@ const Room = () => {
     }
   }, [consumer, remotelyPaused]);
 
+  useEffect(() => {
+    return () => {
+      if (roomClient) roomClient.close();
+    };
+  }, []);
+
   const VideoContent = () => {
     if (consumer && consumer.track) {
       return (
@@ -110,7 +116,27 @@ const Room = () => {
             />
             <h1 className="side-bar-header-title title is-4">PepeHouse</h1>
           </Link>
-          <p className="subtitle is-5 roomID">Room ID: {roomID}</p>
+          <p
+            className="subtitle is-5 roomID"
+            onClick={() => {
+              const roomURL = `https://${window.location.hostname}/room/${roomID}`;
+              navigator.clipboard.writeText(roomURL);
+            }}
+            data-tip
+            data-for="room-link"
+          >
+            Room ID: {roomID}
+          </p>
+          <ReactTooltip
+            id="room-link"
+            type="error"
+            textColor="#fff"
+            backgroundColor="hsl(171, 100%, 41%)"
+            effect="solid"
+            place="left"
+          >
+            <p className="subtitle is-6 tool-tip">Click to get shareable url</p>
+          </ReactTooltip>
           <p
             className="subtitle is-5 display-name"
             onClick={() => setModal(true)}
