@@ -6,7 +6,7 @@ type ProtooURLParams = {
 };
 
 export function getProtooUrl({ roomId, peerId }: ProtooURLParams) {
-  const hostname = "http://localhost";
+  const hostname = "localhost";
 
-  return `ws://${hostname}:${protooPort}/?roomId=${roomId}&peerId=${peerId}`;
+  return `wss://${hostname}:${protooPort}/?roomId=${roomId}&peerId=${peerId}`;
 }
