@@ -5,6 +5,8 @@ import protoo from "protoo-server";
 import * as mediasoup from "mediasoup";
 import { AwaitQueue } from "awaitqueue";
 import path from "path";
+/* import * as dotenv from "dotenv";
+dotenv.config({ path: __dirname + "/.env" }); */
 //import { Router, Worker } from "mediasoup/lib/types";
 
 import { config } from "./config";

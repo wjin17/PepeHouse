@@ -1344,6 +1344,8 @@ export default class RoomClient {
         sctpParameters,
       } = transportInfo;
 
+      console.log("transport info", transportInfo);
+
       this._sendTransport = this._mediasoupDevice.createSendTransport({
         id,
         iceParameters,
@@ -1353,6 +1355,8 @@ export default class RoomClient {
         iceServers: [],
         proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
       });
+
+      console.log("sendtp", this._sendTransport);
 
       this._sendTransport.on(
         "connect",
