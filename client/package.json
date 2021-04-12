@@ -6,12 +6,6 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "@types/node": "^12.20.7",
-    "@types/protoo-client": "^4.0.0",
-    "@types/react-router-dom": "^5.1.7",
-    "@types/react": "^17.0.3",
-    "@types/react-dom": "^17.0.3",
-    "@types/shortid": "0.0.29",
     "bowser": "^2.11.0",
     "bulma": "^0.9.2",
     "mediasoup-client": "^3.6.29",
@@ -52,7 +46,13 @@
     ]
   },
   "devDependencies": {
-    "@types/jest": "^26.0.22"
+    "@types/jest": "^26.0.22",
+    "@types/node": "^12.20.7",
+    "@types/protoo-client": "^4.0.0",
+    "@types/react-router-dom": "^5.1.7",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.3",
+    "@types/shortid": "0.0.29",
   },
   "proxy": "http://localhost:5000"
 }
