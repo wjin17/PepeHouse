@@ -29,7 +29,7 @@ const Room = () => {
   const { roomID } = useParams<RoomParam>();
   const setRoom = roomStore((x) => x.setRoom);
   const { displayName } = meStore((state) => state);
-  const { consumer, remotelyPaused } = consumersStore((state) => state);
+  const { consumers } = consumersStore((state) => state);
 
   useEffect(() => {
     if (!roomID) {
@@ -67,15 +67,21 @@ const Room = () => {
   }, [roomID]);
 
   useEffect(() => {
-    if (consumer && consumer.track) {
-      console.log("paused status", remotelyPaused);
+    if (Object.keys(consumers).length !== 0) {
       const stream = new MediaStream();
-      stream.addTrack(consumer.track);
+      for (const consumer in consumers) {
+        if (consumers[consumer].consumer.kind === "video") {
+          stream.addTrack(consumers[consumer]!.consumer!.track);
+        }
+        if (consumers[consumer].consumer.kind === "audio") {
+          stream.addTrack(consumers[consumer]!.consumer!.track);
+        }
+      }
       userVideo.current.srcObject = stream;
     } else {
       console.log("no track :c");
     }
-  }, [consumer, remotelyPaused]);
+  }, [Object.keys(consumers).length]);
 
   useEffect(() => {
     return () => {
@@ -84,7 +90,7 @@ const Room = () => {
   }, []);
 
   const VideoContent = () => {
-    if (consumer && consumer.track) {
+    if (Object.keys(consumers).length !== 0) {
       return (
         <video className="video" controls autoPlay ref={userVideo}></video>
       );

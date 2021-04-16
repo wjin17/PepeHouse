@@ -12,14 +12,14 @@ import {
 import { getProtooUrl } from "./urlFactory";
 import { roomStore } from "../stores/roomStore";
 import { meStore } from "../stores/meStore";
-import { producerStore } from "../stores/producerStore";
+import { producersStore } from "../stores/producersStore";
 import { dataProducersStore } from "../stores/dataProducersStore";
 import { consumersStore } from "../stores/consumersStore";
 import { dataConsumersStore } from "../stores/dataConsumersStore";
 import { peersStore } from "../stores/peersStore";
 import { chatStore } from "../stores/chatStore";
 
-const { addProducer, removeProducer } = producerStore.getState();
+const { addProducer, removeProducer } = producersStore.getState();
 const { addConsumer, removeConsumer } = consumersStore.getState();
 const { addDataConsumer, removeDataConsumer } = dataConsumersStore.getState();
 const { addPeer, removePeer } = peersStore.getState();
@@ -53,6 +53,7 @@ export default class RoomClient {
   _sendTransport: Transport | null;
   _recvTransport: Transport | null;
   _shareProducer: Producer | null;
+  _audioProducer: Producer | null;
   _chatDataProducer: DataProducer | null;
   _botDataProducer: DataProducer | null;
   _consumers: Map<String, Consumer>;
@@ -79,6 +80,7 @@ export default class RoomClient {
     this._sendTransport = null;
     this._recvTransport = null;
     this._shareProducer = null;
+    this._audioProducer = null;
     this._chatDataProducer = null;
     this._botDataProducer = null;
     this._consumers = new Map();
@@ -114,30 +116,14 @@ export default class RoomClient {
     // Update room state to "connecting"
     // TODO: add room context
     roomStore.setState((cr) => ({ ...cr, status: "connecting" }));
-    //store.dispatch(stateActions.setRoomState("connecting"));
 
     this._protoo.on("open", () => this._joinRoom());
     this._protoo.on("failed", () => {
-      // Update state to connection failed
-      // TODO: add notify context
-      /* store.dispatch(
-        requestActions.notify({
-          type: "error",
-          text: "WebSocket connection failed",
-        })
-      ); */
+      console.log("failed");
+      roomStore.setState((cr) => ({ ...cr, status: "failed" }));
     });
 
     this._protoo.on("disconnected", () => {
-      // Update state to disconnected
-      // TODO: add notify context
-      /* store.dispatch(
-        requestActions.notify({
-          type: "error",
-          text: "WebSocket disconnected",
-        })
-      ); */
-
       // Close mediasoup Transports.
       if (this._sendTransport) {
         this._sendTransport.close();
@@ -180,6 +166,7 @@ export default class RoomClient {
             producerId,
             id,
             kind,
+            type,
             rtpParameters,
             appData,
             producerPaused,
@@ -194,12 +181,11 @@ export default class RoomClient {
               appData: { ...appData, peerId }, // Trick.
             });
 
-            // Store in the map.
-            /* this._consumers.set(consumer.id, consumer);
+            this._consumers.set(consumer.id, consumer);
 
             consumer.on("transportclose", () => {
               this._consumers.delete(consumer.id);
-            }); */
+            });
 
             const {
               spatialLayers,
@@ -215,6 +201,7 @@ export default class RoomClient {
 
             addConsumer(
               consumer,
+              type,
               locallyPaused,
               remotelyPaused,
               spatialLayers,
@@ -239,15 +226,6 @@ export default class RoomClient {
             accept();
           } catch (error) {
             console.log('"newConsumer" request failed:%o', error);
-
-            // Update state with error
-            // TODO: add notify context
-            /* store.dispatch(
-              requestActions.notify({
-                type: "error",
-                text: `Error creating a Consumer: ${error}`,
-              })
-            ); */
 
             throw error;
           }
@@ -301,24 +279,10 @@ export default class RoomClient {
               console.log('DataConsumer "close" event');
 
               this._dataConsumers.delete(dataConsumer.id);
-              // TODO: add notify context
-              /* store.dispatch(
-                requestActions.notify({
-                  type: "error",
-                  text: "DataConsumer closed",
-                })
-              ); */
             });
 
             dataConsumer.on("error", (error) => {
               console.log('DataConsumer "error" event:%o', error);
-              // TODO: add notify context
-              /* store.dispatch(
-                requestActions.notify({
-                  type: "error",
-                  text: `DataConsumer error: ${error}`,
-                })
-              ); */
             });
 
             dataConsumer.on("message", (message) => {
@@ -346,13 +310,10 @@ export default class RoomClient {
                     number - this._nextDataChannelTestNumber
                   );
                 }
-
                 this._nextDataChannelTestNumber = number + 1;
 
                 return;
               } else if (typeof message !== "string") {
-                console.log('ignoring DataConsumer "message" (not a string)');
-
                 return;
               }
 
@@ -376,29 +337,6 @@ export default class RoomClient {
                     type: "chat",
                   });
 
-                  // TODO: add peers context
-                  /* const { peers } = store.getState();
-                  const peersArray = Object.keys(peers).map(
-                    (_peerId) => peers[_peerId]
-                  );
-                  const sendingPeer = peersArray.find((peer) =>
-                    peer.dataConsumers.includes(dataConsumer.id)
-                  );
-
-                  if (!sendingPeer) {
-                    console.log('DataConsumer "message" from unknown peer');
-                    break;
-                  } */
-
-                  // TODO: add notify context
-                  /* store.dispatch(
-                    requestActions.notify({
-                      title: `${sendingPeer.displayName} says:`,
-                      text: message,
-                      timeout: 5000,
-                    })
-                  ); */
-
                   break;
                 }
 
@@ -408,14 +346,6 @@ export default class RoomClient {
                     content: message,
                     type: "chat",
                   });
-                  // TODO: add notify context
-                  /* store.dispatch(
-                    requestActions.notify({
-                      title: "Message from Bot:",
-                      text: message,
-                      timeout: 5000,
-                    })
-                  ); */
 
                   break;
                 }
@@ -443,18 +373,6 @@ export default class RoomClient {
                 peerMap: { ...state.peerMap, [peerId]: newPeer },
               };
             });
-
-            /* store.dispatch(
-              stateActions.addDataConsumer(
-                {
-                  id: dataConsumer.id,
-                  sctpStreamParameters: dataConsumer.sctpStreamParameters,
-                  label: dataConsumer.label,
-                  protocol: dataConsumer.protocol,
-                },
-                peerId
-              )
-            ); */
 
             // We are ready. Answer the protoo request.
             accept();
@@ -499,26 +417,15 @@ export default class RoomClient {
 
           // TODO: add peer context
           addPeer(peer, [], []);
-          /* store.dispatch(
-            stateActions.addPeer({ ...peer, consumers: [], dataConsumers: [] })
-          ); */
           addMessage({
             content: `${peer.displayName} has joined the room`,
             type: "notification",
           });
 
-          // TODO: add notify context
-          /* store.dispatch(
-            requestActions.notify({
-              text: `${peer.displayName} has joined the room`,
-            })
-          ); */
-
           break;
         }
 
         case "peerClosed": {
-          console.log("peer was closed");
           const { peerId, displayName } = notification.data;
 
           // TODO: add peer context
@@ -534,7 +441,6 @@ export default class RoomClient {
         }
 
         case "peerDisplayNameChanged": {
-          console.log("peer display name changed");
           const { peerId, displayName, oldDisplayName } = notification.data;
 
           // TODO: add peer context
@@ -546,7 +452,6 @@ export default class RoomClient {
             };
             return { ...state.peerMap, [peerId]: newPeer };
           });
-          //store.dispatch(stateActions.setPeerDisplayName(displayName, peerId));
 
           // TODO: add notify context
           addMessage({
@@ -565,13 +470,13 @@ export default class RoomClient {
 
         case "downlinkBwe": {
           //console.log("'downlinkBwe' event:%o", notification.data);
-
           break;
         }
 
         case "consumerClosed": {
           const { consumerId } = notification.data;
           const consumer = this._consumers.get(consumerId);
+          console.log("consumer closed", consumer);
 
           if (!consumer) break;
 
@@ -581,7 +486,7 @@ export default class RoomClient {
           const { peerId } = consumer.appData;
 
           // TODO: add consumers context
-          removeConsumer();
+          removeConsumer(consumerId);
 
           peersStore.setState((state) => {
             if (!peerId) {
@@ -624,8 +529,13 @@ export default class RoomClient {
 
           // TODO: add consumer context
           consumersStore.setState((state) => ({
-            ...state,
-            remotelyPaused: true,
+            consumers: {
+              ...state.consumers,
+              [consumerId]: {
+                ...state.consumers[consumerId],
+                remotelyPaused: true,
+              },
+            },
           }));
 
           break;
@@ -644,7 +554,6 @@ export default class RoomClient {
             ...state,
             remotelyPaused: false,
           }));
-          //unpauseConsumer(consumerId, "remote");
           //store.dispatch(stateActions.setConsumerResumed(consumerId, "remote"));
 
           break;
@@ -658,9 +567,14 @@ export default class RoomClient {
 
           // TODO: add consumer context
           consumersStore.setState((state) => ({
-            ...state,
-            currentSpatialLayer: spatialLayer,
-            currentTemporalLayer: temporalLayer,
+            consumers: {
+              ...state.consumers,
+              [consumerId]: {
+                ...state.consumers[consumerId],
+                currentSpatialLayer: spatialLayer,
+                currentTemporalLayer: temporalLayer,
+              },
+            },
           }));
           /* store.dispatch(
             stateActions.setConsumerCurrentLayers(
@@ -721,6 +635,10 @@ export default class RoomClient {
           break;
         }
 
+        /* case "producerClosed": {
+
+        } */
+
         default: {
           console.log(
             'unknown protoo notification.method "%s"',
@@ -732,8 +650,6 @@ export default class RoomClient {
   }
 
   async enableShare() {
-    console.log("enableShare()");
-
     if (this._shareProducer) return;
 
     if (!this._mediasoupDevice!.canProduce("video")) {
@@ -741,7 +657,8 @@ export default class RoomClient {
       return;
     }
 
-    let track;
+    let videoTrack;
+    let audioTrack;
 
     // TODO: add share context
     //store.dispatch(stateActions.setShareInProgress(true));
@@ -766,7 +683,13 @@ export default class RoomClient {
         return;
       }
 
-      track = stream.getTracks()[0];
+      videoTrack = stream
+        .getTracks()
+        .find((media: MediaStreamTrack) => media.kind === "video");
+
+      audioTrack = stream
+        .getTracks()
+        .find((media: MediaStreamTrack) => media.kind === "audio");
 
       /* track!.onended(() => {
         meStore.setState((m) => {
@@ -774,30 +697,55 @@ export default class RoomClient {
         });
       }); */
 
-      const encodings = SCREEN_SHARING_SVC_ENCODINGS;
-      const codec = this._mediasoupDevice!.rtpCapabilities.codecs!.find(
-        (c) => c.mimeType.toLowerCase() === "video/vp9"
+      //const encodings = SCREEN_SHARING_SVC_ENCODINGS;
+      let encodings; // option for h264
+      const videoCodec = this._mediasoupDevice!.rtpCapabilities.codecs!.find(
+        (c) => c.mimeType.toLowerCase() === "video/h264"
+      );
+      const audioCodec = this._mediasoupDevice!.rtpCapabilities.codecs!.find(
+        (c) => c.mimeType.toLowerCase() === "audio/isac"
       );
       const codecOptions = {
         videoGoogleStartBitrate: 6000,
       };
 
       this._shareProducer = await this._sendTransport!.produce({
-        track,
+        track: videoTrack,
         encodings,
         codecOptions,
-        codec,
+        codec: videoCodec,
         appData: {
           share: true,
         },
       });
 
+      if (audioTrack) {
+        this._audioProducer = await this._sendTransport!.produce({
+          track: audioTrack,
+          codecOptions: {
+            opusStereo: true,
+            opusDtx: true,
+          },
+          codec: audioCodec,
+        });
+      }
+
       // TODO: add producer context
       addProducer(
         this._shareProducer,
-        track,
+        videoTrack,
+        "video",
         this._shareProducer.rtpParameters.codecs[0].mimeType.split("/")[1]
       );
+
+      if (this._audioProducer) {
+        addProducer(
+          this._audioProducer,
+          audioTrack,
+          "audio",
+          this._audioProducer.rtpParameters.codecs[0].mimeType.split("/")[1]
+        );
+      }
 
       /* store.dispatch(
         stateActions.addProducer()
@@ -812,13 +760,6 @@ export default class RoomClient {
           content: "You have stopped sharing",
           type: "notification",
         });
-        // TODO: add notify context
-        /* store.dispatch(
-          requestActions.notify({
-            type: "error",
-            text: "Share disconnected!",
-          })
-        ); */
 
         this.disableShare().catch(() => {});
       });
@@ -835,7 +776,7 @@ export default class RoomClient {
         ); */
       }
 
-      if (track) track.stop();
+      if (videoTrack) videoTrack.stop();
       meStore.setState((m) => ({ ...m, shareInProgress: false }));
     }
 
@@ -855,14 +796,20 @@ export default class RoomClient {
     this._shareProducer.close();
 
     // TODO: add producer context
-    removeProducer();
-    //producerStore.setState((p) => ({ ...p, producer: {} }));
-    //store.dispatch(stateActions.removeProducer(this._shareProducer.id));
+    removeProducer(this._shareProducer.id);
+    if (this._audioProducer) {
+      removeProducer(this._audioProducer.id);
+    }
 
     try {
       await this._protoo!.request("closeProducer", {
         producerId: this._shareProducer.id,
       });
+      if (this._audioProducer) {
+        await this._protoo!.request("closeProducer", {
+          producerId: this._audioProducer.id,
+        });
+      }
     } catch (error) {
       // TODO: add notify context
       /* store.dispatch(
@@ -874,6 +821,7 @@ export default class RoomClient {
     }
 
     this._shareProducer = null;
+    this._audioProducer = null;
     meStore.setState((m) => {
       return { ...m, shareInProgress: false };
     });
@@ -923,116 +871,6 @@ export default class RoomClient {
       meStore.setState((m) => ({ ...m, restartIceInProgress: false }));
       /* store.dispatch(
 			stateActions.setRestartIceInProgress(false)); */
-    }
-  }
-
-  async setMaxSendingSpatialLayer(spatialLayer: number) {
-    console.log("setMaxSendingSpatialLayer() [spatialLayer:%s]", spatialLayer);
-
-    try {
-      await this._shareProducer!.setMaxSpatialLayer(spatialLayer);
-    } catch (error) {
-      console.log("setMaxSendingSpatialLayer() | failed:%o", error);
-
-      // TODO: add notify context
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error setting max sending video spatial layer: ${error}`
-				})); */
-    }
-  }
-
-  async setConsumerPreferredLayers(
-    consumerId: string,
-    spatialLayer: number,
-    temporalLayer: number
-  ) {
-    console.log(
-      "setConsumerPreferredLayers() [consumerId:%s, spatialLayer:%s, temporalLayer:%s]",
-      consumerId,
-      spatialLayer,
-      temporalLayer
-    );
-
-    try {
-      await this._protoo!.request("setConsumerPreferredLayers", {
-        consumerId,
-        spatialLayer,
-        temporalLayer,
-      });
-
-      // TODO: add consumer context
-      consumersStore.setState((state) => ({
-        ...state,
-        preferredSpatialLayer: spatialLayer,
-        preferredTemporalLayer: temporalLayer,
-      }));
-      /* store.dispatch(stateActions.setConsumerPreferredLayers(
-				consumerId, spatialLayer, temporalLayer)); */
-    } catch (error) {
-      console.log("setConsumerPreferredLayers() | failed:%o", error);
-
-      // add notify context
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error setting Consumer preferred layers: ${error}`
-				})); */
-    }
-  }
-
-  async setConsumerPriority(consumerId: string, priority: number) {
-    console.log(
-      "setConsumerPriority() [consumerId:%s, priority:%d]",
-      consumerId,
-      priority
-    );
-
-    try {
-      await this._protoo!.request("setConsumerPriority", {
-        consumerId,
-        priority,
-      });
-
-      // TODO: add consumer context
-      consumersStore.setState((state) => ({
-        ...state,
-        priority,
-      }));
-      //store.dispatch(stateActions.setConsumerPriority(consumerId, priority));
-    } catch (error) {
-      console.log("setConsumerPriority() | failed:%o", error);
-
-      // TODO: add notify context
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error setting Consumer priority: ${error}`
-				})); */
-    }
-  }
-
-  async requestConsumerKeyFrame(consumerId: string) {
-    console.log("requestConsumerKeyFrame() [consumerId:%s]", consumerId);
-
-    try {
-      await this._protoo!.request("requestConsumerKeyFrame", { consumerId });
-
-      // TODO: add notify context
-      /* store.dispatch(requestActions.notify(
-				{
-					text : 'Keyframe requested for video consumer'
-				})); */
-    } catch (error) {
-      console.log("requestConsumerKeyFrame() | failed:%o", error);
-
-      // TODO: add notify context
-      /* store.dispatch(requestActions.notify(
-				{
-					type : 'error',
-					text : `Error requesting key frame for Consumer: ${error}`
-				})); */
     }
   }
 
@@ -1103,6 +941,10 @@ export default class RoomClient {
       });
     } catch (error) {
       console.log("enableChatDataProducer() | failed:%o", error);
+      addMessage({
+        content: "Unable to join chat, try refreshing",
+        type: "notification",
+      });
 
       // TODO: add notify context
       /* store.dispatch(requestActions.notify(
@@ -1286,14 +1128,6 @@ export default class RoomClient {
         content: `Your display name is now ${displayName}`,
         type: "notification",
       });
-      /* store.dispatch(
-				stateActions.setDisplayName(displayName)); */
-
-      // TODO: add notify context
-      /* store.dispatch(requestActions.notify(
-				{
-					text : 'Display name changed'
-				})); */
     } catch (error) {
       console.log("changeDisplayName() | failed: %o", error);
 
@@ -1344,8 +1178,6 @@ export default class RoomClient {
         sctpParameters,
       } = transportInfo;
 
-      console.log("transport info", transportInfo);
-
       this._sendTransport = this._mediasoupDevice.createSendTransport({
         id,
         iceParameters,
@@ -1356,7 +1188,9 @@ export default class RoomClient {
         proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
       });
 
-      console.log("sendtp", this._sendTransport);
+      this._sendTransport.on("connectionstatechange", (connectionState) => {
+        console.log("connection state", connectionState);
+      });
 
       this._sendTransport.on(
         "connect",
@@ -1374,14 +1208,17 @@ export default class RoomClient {
                 console.log("connected to room");
               })
             )
-            .catch(errback);
+            .catch((err) => {
+              console.log(err);
+              errback(() => console.log("error connecting"));
+            });
         }
       );
 
       this._sendTransport.on(
         "produce",
         async ({ kind, rtpParameters, appData }, callback, errback) => {
-          console.log("calling produce");
+          console.log("calling produce", kind);
           try {
             // eslint-disable-next-line no-shadow
             const { id } = await this._protoo!.request("produce", {
@@ -1498,23 +1335,13 @@ export default class RoomClient {
         content: "Welcome to PepeHouse!",
         type: "notification",
       });
-      /* store.dispatch(
-        requestActions.notify({
-          text: "You are in the room!",
-          timeout: 3000,
-        })
-      ); */
 
       for (const peer of peers) {
         // TODO: add peer context
         addPeer(peer, [], []);
-        /* store.dispatch(
-          stateActions.addPeer({ ...peer, consumers: [], dataConsumers: [] })
-        ); */
       }
 
       this._sendTransport!.on("connectionstatechange", (connectionState) => {
-        console.log("local state changed", connectionState);
         if (connectionState === "connected") {
           console.log("connection state change");
         }
@@ -1530,14 +1357,6 @@ export default class RoomClient {
       meStore.setState((state) => {
         return { ...state, error: "Host exists" };
       });
-
-      // TODO: add notify context
-      /* store.dispatch(
-        requestActions.notify({
-          type: "error",
-          text: `Could not join the room: ${error}`,
-        })
-      ); */
 
       this.close();
     }

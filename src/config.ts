@@ -15,7 +15,7 @@ export const config = {
   },
   mediasoup: {
     // Number of mediasoup workers to launch.
-    numWorkers: 2, //Object.keys(os.cpus()).length,
+    numWorkers: Object.keys(os.cpus()).length,
     // mediasoup WorkerSettings.
     // See https://mediasoup.org/documentation/v3/mediasoup/api/#WorkerSettings
     workerSettings: {
@@ -46,6 +46,14 @@ export const config = {
           mimeType: "audio/opus",
           clockRate: 48000,
           channels: 2,
+        },
+        {
+          kind: "audio",
+          name: "ISAC",
+          mimeType: "audio/ISAC",
+          clockRate: 32000,
+          channels: 1,
+          rtcpFeedback: [],
         },
         {
           kind: "video",

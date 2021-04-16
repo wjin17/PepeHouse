@@ -8,7 +8,7 @@ import { deviceInfo } from "../../lib/deviceInfo";
 import { randomPepe } from "../../lib/pepe";
 import { roomStore } from "../../stores/roomStore";
 import { meStore } from "../../stores/meStore";
-import { producerStore } from "../../stores/producerStore";
+import { producersStore } from "../../stores/producersStore";
 
 import MessageList from "../../components/Chat/MessageList";
 import MessageInput from "../../components/Chat/MessageInput";
@@ -30,7 +30,7 @@ const Host = () => {
   //let roomClient;
   const setRoom = roomStore((x) => x.setRoom);
   const { displayName, shareInProgress, error } = meStore((state) => state);
-  const { producer } = producerStore((state) => state);
+  const { producers } = producersStore((state) => state);
 
   useEffect(() => {
     if (!roomID) {
@@ -67,12 +67,21 @@ const Host = () => {
   }, [roomID]);
 
   useEffect(() => {
-    if (producer && producer.track) {
+    if (Object.keys(producers).length !== 0) {
       const stream = new MediaStream();
-      stream.addTrack(producer.track);
+      for (const producer in producers) {
+        if (producers[producer].type === "video") {
+          console.log("adding video track");
+          stream.addTrack(producers[producer].track);
+        }
+        if (producers[producer].type === "audio") {
+          console.log("adding audio track", producers[producer]);
+          stream.addTrack(producers[producer].track);
+        }
+      }
       userVideo.current.srcObject = stream;
     }
-  }, [producer]);
+  }, [producers]);
 
   useEffect(() => {
     return () => {

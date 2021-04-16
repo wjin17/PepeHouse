@@ -17,13 +17,11 @@ export type RoomParams = {
   roomId: string;
   protooRoom: protoo.Room;
   mediasoupRouter: Router;
-  audioLevelObserver: AudioLevelObserver;
   bot: Bot;
 };
 
 export type ProtooConnectionParams = {
   peerId: string;
-  consume: any;
   protooWebSocketTransport: protoo.WebSocketTransport;
 };
 
