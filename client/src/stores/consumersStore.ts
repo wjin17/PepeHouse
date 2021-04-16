@@ -2,10 +2,8 @@ import create from "zustand";
 import { combine } from "zustand/middleware";
 import { Consumer } from "mediasoup-client/lib/types";
 
-export const consumersStore = create(
-  combine(
-    {
-      consumer: null as Consumer | null,
+/*
+consumer: null as Consumer | null,
       locallyPaused: false as boolean,
       remotelyPaused: false as boolean,
       spatialLayers: 0 as number,
@@ -14,11 +12,42 @@ export const consumersStore = create(
       currentTemporalLayer: undefined as number | undefined,
       preferredSpatialLayer: undefined as number | undefined,
       preferredTemporalLayer: undefined as number | undefined,
+
+      {
+            ...state,
+            consumer: con,
+            locallyPaused,
+            remotelyPaused,
+            spatialLayers,
+            temporalLayers,
+            preferredSpatialLayer: spatialLayers - 1,
+            preferredTemporalLayer: temporalLayers - 1,
+          }
+*/
+
+interface ConsumerData {
+  consumer: Consumer;
+  type: string;
+  locallyPaused: boolean;
+  remotelyPaused: boolean;
+  spatialLayers: number;
+  temporalLayers: number;
+  currentSpatialLayer: number | undefined;
+  currentTemporalLayer: number | undefined;
+  preferredSpatialLayer: number;
+  preferredTemporalLayer: number;
+}
+
+export const consumersStore = create(
+  combine(
+    {
+      consumers: {} as Record<string, ConsumerData>,
     },
     (set) => ({
       set,
       addConsumer: (
         con: Consumer,
+        type: string,
         locallyPaused: boolean,
         remotelyPaused: boolean,
         spatialLayers: number,
@@ -29,30 +58,35 @@ export const consumersStore = create(
             const existingConsumer = state.consumer;
             existingConsumer.consumer.close();
           } */
-          console.log("addin consumer", con);
           return {
-            ...state,
-            consumer: con,
-            locallyPaused,
-            remotelyPaused,
-            spatialLayers,
-            temporalLayers,
-            preferredSpatialLayer: spatialLayers - 1,
-            preferredTemporalLayer: temporalLayers - 1,
+            consumers: {
+              ...state.consumers,
+              [con.id]: {
+                consumer: con,
+                type,
+                locallyPaused,
+                remotelyPaused,
+                spatialLayers,
+                temporalLayers,
+                currentSpatialLayer: undefined,
+                currentTemporalLayer: undefined,
+                preferredSpatialLayer: spatialLayers - 1,
+                preferredTemporalLayer: temporalLayers - 1,
+              },
+            },
           };
         }),
-      removeConsumer: () =>
-        set(() => {
+      removeConsumer: (consumerId: string) =>
+        set((state) => {
+          console.log("removing consumer", consumerId);
+          if (consumerId in state.consumers) {
+            delete state.consumers[consumerId];
+          }
+          console.log("shoulda performed removal", {
+            consumers: { ...state.consumers },
+          });
           return {
-            consumer: null,
-            locallyPaused: false,
-            remotelyPaused: false,
-            spatialLayers: 0,
-            temporalLayers: 0,
-            currentSpatialLayer: undefined,
-            currentTemporalLayer: undefined,
-            preferredSpatialLayer: undefined,
-            preferredTemporalLayer: undefined,
+            consumers: { ...state.consumers },
           };
         }),
     })

@@ -11,7 +11,7 @@ export function getProtooUrl({ roomId, peerId }: ProtooURLParams) {
     //if (false) {
     return `ws://${hostname}:${protooPort}/?roomId=${roomId}&peerId=${peerId}`;
   } else {
-    return `wss://${hostname}/?roomId=${roomId}&peerId=${peerId}`;
+    return `wss://pepehouse.tv/?roomId=${roomId}&peerId=${peerId}`;
   }
 
   //return `wss://${hostname}:${protooPort}/?roomId=${roomId}&peerId=${peerId}`;

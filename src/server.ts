@@ -26,6 +26,7 @@ let nextMediasoupWorkerIdx = 0;
 async function run() {
   // Run a mediasoup Worker.
   await runMediasoupWorkers();
+  console.log("ip", process.env.MEDIASOUP_LISTEN_IP);
 
   // Create Express app.
   await createExpressApp();
@@ -73,7 +74,7 @@ async function runMediasoupWorkers() {
       mediasoupWorkers.push(worker);
 
       // Log worker resource usage every X seconds.
-      setInterval(async () => {
+      /* setInterval(async () => {
         const usage = await worker.getResourceUsage();
 
         console.log(
@@ -81,7 +82,7 @@ async function runMediasoupWorkers() {
           worker.pid,
           usage
         );
-      }, 120000);
+      }, 120000); */
     }
   } catch (err) {
     console.log(err);
@@ -142,15 +143,16 @@ async function runProtooWebSocketServer() {
 
   // Handle connections from clients.
   protooWebSocketServer.on("connectionrequest", (info: any, accept, reject) => {
-    console.log("connection to websocket requested");
     // The client indicates the roomId and peerId in the URL query.
-    const u = url.parse(info.request.url, true);
-    const roomId = u.query["roomId"];
-    const peerId = u.query["peerId"];
+    const wsURL = new URL(
+      info.request.url,
+      `http://${info.request.headers.host}`
+    );
+    const roomId = wsURL.searchParams.get("roomId");
+    const peerId = wsURL.searchParams.get("peerId");
 
     if (!roomId || !peerId) {
       reject(400, "Connection request without roomId and/or peerId");
-
       return;
     }
 
@@ -199,7 +201,7 @@ function getMediasoupWorker() {
  * Get a Room instance (or create one if it does not exist).
  */
 async function getOrCreateRoom({ roomId }: { roomId: string }) {
-  let room = rooms.get(roomId);
+  let room: Room = rooms.get(roomId);
 
   // If the Room does not exist create a new one.
   if (!room) {
@@ -217,13 +219,3 @@ async function getOrCreateRoom({ roomId }: { roomId: string }) {
 }
 
 run();
-
-/* const PORT = process.env.PORT || 5000;
-
-try {
-  server.listen(PORT, () => {
-    console.log(`Server is up at ${PORT}`);
-  });
-} catch (err) {
-  console.log(err);
-} */

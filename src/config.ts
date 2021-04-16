@@ -48,6 +48,14 @@ export const config = {
           channels: 2,
         },
         {
+          kind: "audio",
+          name: "ISAC",
+          mimeType: "audio/ISAC",
+          clockRate: 32000,
+          channels: 1,
+          rtcpFeedback: [],
+        },
+        {
           kind: "video",
           mimeType: "video/VP8",
           clockRate: 90000,

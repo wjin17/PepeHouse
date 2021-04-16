@@ -7,7 +7,7 @@ import { deviceInfo } from "../../lib/deviceInfo";
 import { randomPepe } from "../../lib/pepe";
 import { roomStore } from "../../stores/roomStore";
 import { meStore } from "../../stores/meStore";
-import { producerStore } from "../../stores/producerStore";
+import { producersStore } from "../../stores/producersStore";
 
 import "./host.scss";
 import PepeHouseLogo from "../../static/images/pepe.png";

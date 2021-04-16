@@ -52,7 +52,7 @@
     "@types/react-router-dom": "^5.1.7",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
-    "@types/shortid": "0.0.29",
+    "@types/shortid": "0.0.29"
   },
   "proxy": "http://localhost:5000"
 }
