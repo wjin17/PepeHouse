@@ -35,7 +35,7 @@ export const config = {
         "sctp",
       ] as WorkerLogTag[],
       rtcMinPort: process.env.MEDIASOUP_MIN_PORT || 40000,
-      rtcMaxPort: process.env.MEDIASOUP_MAX_PORT || 49999,
+      rtcMaxPort: process.env.MEDIASOUP_MAX_PORT || 40500,
     },
     // mediasoup Router options.
     // See https://mediasoup.org/documentation/v3/mediasoup/api/#RouterOptions
@@ -79,17 +79,6 @@ export const config = {
           parameters: {
             "packetization-mode": 1,
             "profile-level-id": "4d0032",
-            "level-asymmetry-allowed": 1,
-            "x-google-start-bitrate": 1000,
-          },
-        },
-        {
-          kind: "video",
-          mimeType: "video/h264",
-          clockRate: 90000,
-          parameters: {
-            "packetization-mode": 1,
-            "profile-level-id": "42e01f",
             "level-asymmetry-allowed": 1,
             "x-google-start-bitrate": 1000,
           },

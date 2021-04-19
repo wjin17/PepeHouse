@@ -29,7 +29,12 @@ const PC_PROPRIETARY_CONSTRAINTS = {
   optional: [{ googDscp: true }],
 };
 
-const SCREEN_SHARING_SVC_ENCODINGS = [{ scalabilityMode: "S3T3", dtx: true }];
+//const SCREEN_SHARING_SVC_ENCODINGS = [{ scalabilityMode: "S3T3", dtx: true }];
+
+/* const SCREEN_SHARING_SIMULCAST_ENCODINGS = [
+  { dtx: true, maxBitrate: 1500000 },
+  { dtx: true, maxBitrate: 6000000 },
+]; */
 
 type RoomClientParams = {
   roomId: string;
@@ -156,6 +161,7 @@ export default class RoomClient {
 
       switch (request.method) {
         case "newConsumer": {
+          console.log("should create new consumer");
           if (!this._consume) {
             reject(403, "I do not want to consume");
             break;
@@ -476,7 +482,6 @@ export default class RoomClient {
         case "consumerClosed": {
           const { consumerId } = notification.data;
           const consumer = this._consumers.get(consumerId);
-          console.log("consumer closed", consumer);
 
           if (!consumer) break;
 
@@ -699,11 +704,17 @@ export default class RoomClient {
 
       //const encodings = SCREEN_SHARING_SVC_ENCODINGS;
       let encodings; // option for h264
+
+      /* const encodings = SCREEN_SHARING_SIMULCAST_ENCODINGS.map((encoding) => ({
+        ...encoding,
+        dtx: true,
+      })); */
+
       const videoCodec = this._mediasoupDevice!.rtpCapabilities.codecs!.find(
-        (c) => c.mimeType.toLowerCase() === "video/h264"
+        (c) => c.mimeType.toLowerCase() === "video/vp8" //h264
       );
       const audioCodec = this._mediasoupDevice!.rtpCapabilities.codecs!.find(
-        (c) => c.mimeType.toLowerCase() === "audio/isac"
+        (c) => c.mimeType.toLowerCase() === "audio/opus" //isac
       );
       const codecOptions = {
         videoGoogleStartBitrate: 6000,
@@ -1049,7 +1060,6 @@ export default class RoomClient {
     console.log('sendChatMessage() [text:"%s]', text);
 
     if (!this._chatDataProducer) {
-      console.log("chat data producer", this._chatDataProducer);
       addMessage({
         content: "Unable to send message",
         type: "notification",
@@ -1203,13 +1213,8 @@ export default class RoomClient {
             transportId: this._sendTransport!.id,
             dtlsParameters,
           })
-            .then(
-              callback(() => {
-                console.log("connected to room");
-              })
-            )
+            .then(callback)
             .catch((err) => {
-              console.log(err);
               errback(() => console.log("error connecting"));
             });
         }
@@ -1218,7 +1223,6 @@ export default class RoomClient {
       this._sendTransport.on(
         "produce",
         async ({ kind, rtpParameters, appData }, callback, errback) => {
-          console.log("calling produce", kind);
           try {
             // eslint-disable-next-line no-shadow
             const { id } = await this._protoo!.request("produce", {
