@@ -51,8 +51,6 @@ const Room = () => {
       const displayName = randomPepe();
       meStore.getState().set({ peerId, displayName });
 
-      console.log("creating new room client");
-
       const newRoomClient = new RoomClient({
         roomId: roomID,
         peerId,

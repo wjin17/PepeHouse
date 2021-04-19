@@ -688,7 +688,6 @@ export class Room extends EventEmitter {
     //   fail to associate the RTP stream.
 
     // NOTE: Don't create the Consumer if the remote Peer cannot consume it.
-    console.log("creating consumer");
     if (!producer) return;
     if (
       !consumerPeer.data.rtpCapabilities ||
